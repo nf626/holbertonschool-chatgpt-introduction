@@ -1,5 +1,5 @@
-"""0. Debugging - Python Factorial"""
 #!/usr/bin/python3
+"""0. Debugging - Python Factorial"""
 import sys
 
 def factorial(n):
