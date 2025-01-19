@@ -1,15 +1,14 @@
 #!/usr/bin/python3
-"""Debugging - Python Mines"""
 import random
 import os
 
 def clear_screen():
-    """clear screen"""
     os.system('cls' if os.name == 'nt' else 'clear')
 
 class Minesweeper:
-    """Minesweeper field"""
     def __init__(self, width=10, height=10, mines=10):
+        if mines > width * height:
+            raise ValueError("Too many mines for the given field size")
         self.width = width
         self.height = height
         self.mines = set(random.sample(range(width * height), mines))
@@ -17,14 +16,13 @@ class Minesweeper:
         self.revealed = [[False for _ in range(width)] for _ in range(height)]
 
     def print_board(self, reveal=False):
-        """print board"""
         clear_screen()
-        print('  ' + ' '.join(str(i) for i in range(self.width)))
+        print('   ' + ' '.join(str(i).rjust(2) for i in range(self.width)))  # Added padding to column numbers
         for y in range(self.height):
-            print(y, end=' ')
+            print(str(y).rjust(2), end=' ')  # Added padding to row numbers
             for x in range(self.width):
                 if reveal or self.revealed[y][x]:
-                    if y * self.width + x in self.mines:
+                    if (y * self.width + x) in self.mines:
                         print('*', end=' ')
                     else:
                         count = self.count_mines_nearby(x, y)
@@ -34,19 +32,17 @@ class Minesweeper:
             print()
 
     def count_mines_nearby(self, x, y):
-        """count mines nearby"""
         count = 0
         for dx in [-1, 0, 1]:
             for dy in [-1, 0, 1]:
                 nx, ny = x + dx, y + dy
                 if 0 <= nx < self.width and 0 <= ny < self.height:
-                    if ny * self.width + nx in self.mines:
+                    if (ny * self.width + nx) in self.mines:  # Use ny and nx instead of y and x
                         count += 1
         return count
 
     def reveal(self, x, y):
-        """reveal"""
-        if y * self.width + x in self.mines:
+        if (y * self.width + x) in self.mines:
             return False
         self.revealed[y][x] = True
         if self.count_mines_nearby(x, y) == 0:
@@ -57,19 +53,33 @@ class Minesweeper:
                         self.reveal(nx, ny)
         return True
 
+    def is_game_won(self):
+        # Check if all non-mine cells have been revealed
+        for y in range(self.height):
+            for x in range(self.width):
+                if (y * self.width + x) not in self.mines and not self.revealed[y][x]:
+                    return False
+        return True
+
     def play(self):
-        """play minesweep"""
         while True:
             self.print_board()
             try:
                 x = int(input("Enter x coordinate: "))
                 y = int(input("Enter y coordinate: "))
+                
                 if not (0 <= x < self.width and 0 <= y < self.height):
-                    print("Invalid coordinates. Please try again.")
+                    print("Invalid coordinates. Please enter coordinates within the game field.")
                     continue
+                
                 if not self.reveal(x, y):
                     self.print_board(reveal=True)
                     print("Game Over! You hit a mine.")
+                    break
+                
+                if self.is_game_won():
+                    self.print_board(reveal=True)
+                    print("Congratulations! You've cleared the minefield.")
                     break
             except ValueError:
                 print("Invalid input. Please enter numbers only.")

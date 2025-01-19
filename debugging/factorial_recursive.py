@@ -10,4 +10,4 @@ def factorial(n):
     else:
         return n * factorial(n-1)
     f = factorial(int(sys.argv[1]))
-    print(f)
+    print(f) # print factorial
